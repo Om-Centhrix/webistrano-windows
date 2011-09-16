@@ -37,9 +37,9 @@ module Webistrano
         
         namespace :deploy do
           desc <<-DESC
-            Deploys your project. This calls both `stop`, `update' and `start'. Note that \
+            Deploys your project. This calls both 'stop', 'update' and 'start'. Note that \
             this will generally only work for applications that have already been deployed \
-            once. For a "cold" deploy, you'll want to take a look at the `deploy:cold' \
+            once. For a "cold" deploy, you'll want to take a look at the 'deploy:cold' \
             task, which handles the cold start specifically.
           DESC
           task :default do
@@ -58,42 +58,40 @@ module Webistrano
             variable is set to true, which is the default).
           DESC
           task :finalize_update, :except => { :no_release => true } do       
-            set :link, latest_release.gsub("/", "\\\\\\")
-            set :target, shared_path.gsub("/", "\\\\\\")
+            set :my_link, latest_release.gsub("/", "\\\\\\")
+            set :my_target, shared_path.gsub("/", "\\\\\\")
         
             # mkdir -p is making sure that the directories are there for some SCM's that don't
             # save empty folders
-            run <<-CMD
-              rm -rf #{latest_release}/log && cmd /c mklink /d #{link}\\\\log #{target}\\\\log
-            CMD
+            run "rm -rf #{latest_release}/log && cmd /c mklink /D #{my_link}\\\\log #{my_target}\\\\log"
           end
           
           desc <<-DESC
             Updates the symlink to the most recently deployed version. Capistrano works \
             by putting each new release of your application in its own directory. When \
-            you deploy a new version, this task's job is to update the `current' symlink \
+            you deploy a new version, this task's job is to update the 'current' symlink \
             to point at the new version. You will rarely need to call this task \
-            directly; instead, use the `deploy' task (which performs a complete \
-            deploy, including `restart') or the 'update' task (which does everything \
-            except `restart').
+            directly; instead, use the 'deploy' task (which performs a complete \
+            deploy, including 'restart') or the 'update' task (which does everything \
+            except 'restart').
           DESC
           task :symlink, :except => { :no_release => true } do
                     
-            set :link, current_path.gsub("/", "\\\\\\")
+            set :my_link, current_path.gsub("/", "\\\\\\")
   
             on_rollback do
-              set :target, previous_release.gsub("/", "\\\\\\")
+              set :my_target, previous_release.gsub("/", "\\\\\\")
             
               if previous_release
-                run "rm -f #{current_path}; cmd /c mklink /d #{link} #{target}; true"
+                run "rm -f #{current_path}; cmd /c mklink /D #{my_link} #{my_target}; true"
               else
                 logger.important "no previous release to rollback to, rollback of symlink skipped"
               end
             end
         
-            set :target, latest_release.gsub("/", "\\\\\\")
+            set :my_target, latest_release.gsub("/", "\\\\\\")
         
-            run "rm -f #{current_path} && cmd /c mklink /d #{link} #{target}"
+            run "rm -f #{current_path} && cmd /c mklink /D #{my_link} #{my_target}"
           end
             
           namespace :rollback do
@@ -103,11 +101,11 @@ module Webistrano
               ever) need to be called directly.
             DESC
             task :revision, :except => { :no_release => true } do
-              set :link, current_path.gsub("/", "\\\\\\")
-              set :target, previous_release.gsub("/", "\\\\\\")
+              set :my_link, current_path.gsub("/", "\\\\\\")
+              set :my_target, previous_release.gsub("/", "\\\\\\")
               
               if previous_release
-                run "rm #{current_path}; cmd /c mklink /d #{link} #{target}"
+                run "rm #{current_path}; cmd /c mklink /D #{my_link} #{my_target}"
               else
                 abort "could not rollback the code because there is no prior release"
               end
