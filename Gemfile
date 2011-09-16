@@ -10,6 +10,7 @@ gem "open4", "0.9.3"
 gem "exception_notification", "2.3.3.0"
 gem 'tiny_tds', '~> 0.4.5'
 gem 'activerecord-sqlserver-adapter', '~> 2.3.21'
+gem "mongrel", '>= 1.2.0.pre2'
 
 group :test do
   gem "mocha", "0.9.8"
