@@ -1,18 +1,9 @@
 module Webistrano
   module Template
     module WindowsBase
-      CONFIG = {
-        :application => 'your_app_name',
-        :scm => 'subversion',
-        :deploy_via => ':remote_cache',
-        :scm_username => 'your_SVN_user',
-        :scm_password => 'your_SVN_password',
-        :user => 'deployment_user(SSH login)',
-        :password => 'deployment_user(SSH user) password',
-        :use_sudo => 'false',
-        :deploy_to => '/path/to/deployment_base',
-        :repository => 'https://svn.example.com/project/trunk'
-      }.freeze
+      
+      CONFIG = Webistrano::Template::Base::CONFIG.dup.merge({
+      }).freeze
       
       DESC = <<-'EOS'
         Windows Base template that the other templates use to inherit from.
