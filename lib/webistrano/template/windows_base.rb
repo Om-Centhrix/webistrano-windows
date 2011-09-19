@@ -8,10 +8,13 @@ module Webistrano
       DESC = <<-'EOS'
         Windows Base template that the other templates use to inherit from.
         Defines basic Capistrano configuration parameters.
-        Overrides Capistrano tasks to use mklink instead of ln -s.
+        Overrides Capistrano tasks to use mklink instead of ln -s to
+        effectively build NTFS symlinks.
       EOS
       
       TASKS =  <<-'EOS'
+      
+        set :previous_dir, releases.length > 1 ? releases[-2] : nil
       
         # allocate a pty by default as some systems have problems without
         default_run_options[:pty] = true
@@ -27,18 +30,6 @@ module Webistrano
         end
         
         namespace :deploy do
-          desc <<-DESC
-            Deploys your project. This calls both 'stop', 'update' and 'start'. Note that \
-            this will generally only work for applications that have already been deployed \
-            once. For a "cold" deploy, you'll want to take a look at the 'deploy:cold' \
-            task, which handles the cold start specifically.
-          DESC
-          task :default do
-            stop
-            update
-            start
-          end
-          
           desc <<-DESC
             [internal] Touches up the released code. This is called by update_code \
             after the basic deploy finishes. It assumes a Rails project was deployed, \
