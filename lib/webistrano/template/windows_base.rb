@@ -43,7 +43,10 @@ module Webistrano
         
             # mkdir -p is making sure that the directories are there for some SCM's that don't
             # save empty folders
-            run "rm -rf #{latest_release}/log && cmd /c mklink /D #{my_link}\\\\log #{my_target}\\\\log"
+            run <<-CMD
+              /bin/find #{latest_release} -type d -iname .svn -or -type d -iname .git | xargs rm -Rf && \
+              rm -rf #{latest_release}/log && cmd /c mklink /D #{my_link}\\\\log #{my_target}\\\\log"
+            CMD
           end
           
           desc <<-DESC
@@ -85,7 +88,7 @@ module Webistrano
               set :my_target, previous_release.gsub("/", "\\\\\\")
               
               if previous_release
-                run "rm #{current_path}; cmd /c mklink /D #{my_link} #{my_target}"
+                run "rm -Rf #{current_path}; cmd /c mklink /D #{my_link} #{my_target}"
               else
                 abort "could not rollback the code because there is no prior release"
               end
