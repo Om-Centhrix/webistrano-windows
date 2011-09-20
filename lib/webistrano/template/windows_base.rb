@@ -14,8 +14,6 @@ module Webistrano
       
       TASKS =  <<-'EOS'
       
-        set :previous_dir, releases.length > 1 ? releases[-2] : nil
-      
         # allocate a pty by default as some systems have problems without
         default_run_options[:pty] = true
       
