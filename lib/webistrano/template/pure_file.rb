@@ -7,7 +7,7 @@ module Webistrano
       
       DESC = <<-'EOS'
         Template for use with non-rails projects that just update 'pure' files.
-        The basic (re)start/stop tasks of Capistrano are overrided with NOP tasks.
+        The basic (re)start/stop tasks of Capistrano are overriden with NOP tasks.
       EOS
       
       TASKS = Webistrano::Template::Base::TASKS + <<-'EOS'
