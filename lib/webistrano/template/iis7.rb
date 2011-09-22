@@ -30,7 +30,9 @@ module Webistrano
             else
               stop
             end
+            
             update
+            
             if fetch(:use_maintenance_site, true)
               logger.info "Disabling maintenace site."
               deploy.web.enable
@@ -39,6 +41,35 @@ module Webistrano
             end
           end
           
+          desc <<-DESC
+            Deploy and run pending migrations. This will work similarly to the \
+            `deploy' task, but will also run any pending migrations (via the \
+            `deploy:migrate' task) prior to updating the symlink. Note that the \
+            update in this case it is not atomic, and transactions are not used, \
+            because migrations are not guaranteed to be reversible.
+          DESC
+          task :migrations do
+            set :migrate_target, :latest
+            
+            if fetch(:use_maintenance_site, true)
+              logger.info "Enabling maintenace site."
+              deploy.web.disable
+            else
+              stop
+            end
+            
+            update_code
+            migrate
+            symlink
+            
+            if fetch(:use_maintenance_site, true)
+              logger.info "Disabling maintenace site."
+              deploy.web.enable
+            else
+              start
+            end
+          end
+
           task :restart, :roles => :app, :except => { :no_release => true } do
             run "appcmd stop site #{application} && appcmd set site #{application} /serverAutoStart:false"
             sleep(5)

@@ -13,6 +13,10 @@ module Webistrano
       EOS
       
       TASKS =  <<-'EOS'
+        # Converts a string path for use with the mklink command
+        def do_mklink(path)
+          path.gsub("/", "\\\\\\")
+        end
       
         # allocate a pty by default as some systems have problems without
         default_run_options[:pty] = true
@@ -38,14 +42,14 @@ module Webistrano
             variable is set to true, which is the default).
           DESC
           task :finalize_update, :except => { :no_release => true } do       
-            set :my_link, latest_release.gsub("/", "\\\\\\")
-            set :my_target, shared_path.gsub("/", "\\\\\\")
+            set :my_link, do_mklink(latest_release)
+            set :my_target, do_mklink(shared_path)
         
             # mkdir -p is making sure that the directories are there for some SCM's that don't
             # save empty folders
             run <<-CMD
               /bin/find #{latest_release} -type d -iname .svn -or -type d -iname .git | xargs rm -Rf && \
-              rm -rf #{latest_release}/log && cmd /c mklink /D #{my_link}\\\\log #{my_target}\\\\log"
+              rm -rf #{latest_release}/log && cmd /c mklink /D #{my_link}\\\\log #{my_target}\\\\log
             CMD
           end
           
@@ -60,10 +64,10 @@ module Webistrano
           DESC
           task :symlink, :except => { :no_release => true } do
                     
-            set :my_link, current_path.gsub("/", "\\\\\\")
+            set :my_link, do_mklink(current_path)
   
             on_rollback do
-              set :my_target, previous_release.gsub("/", "\\\\\\")
+              set :my_target, do_mklink(previous_release)
             
               if previous_release
                 run "rm -f #{current_path}; cmd /c mklink /D #{my_link} #{my_target}; true"
@@ -72,7 +76,7 @@ module Webistrano
               end
             end
         
-            set :my_target, latest_release.gsub("/", "\\\\\\")
+            set :my_target, do_mklink(latest_release)
         
             run "rm -f #{current_path} && cmd /c mklink /D #{my_link} #{my_target}"
           end
@@ -84,8 +88,8 @@ module Webistrano
               ever) need to be called directly.
             DESC
             task :revision, :except => { :no_release => true } do
-              set :my_link, current_path.gsub("/", "\\\\\\")
-              set :my_target, previous_release.gsub("/", "\\\\\\")
+              set :my_link, do_mklink(current_path)
+              set :my_target, do_mklink(previous_release)
               
               if previous_release
                 run "rm -Rf #{current_path}; cmd /c mklink /D #{my_link} #{my_target}"
