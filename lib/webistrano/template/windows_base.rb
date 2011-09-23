@@ -49,7 +49,7 @@ module Webistrano
             # save empty folders
             run <<-CMD
               /bin/find #{latest_release} -type d -iname .svn -or -type d -iname .git | xargs rm -Rf && \
-              rm -rf #{latest_release}/log && cmd /c mklink /D #{my_link}\\\\log #{my_target}\\\\log
+              rm -Rf #{latest_release}/log && cmd /c mklink /D #{my_link}\\\\log #{my_target}\\\\log
             CMD
           end
           
@@ -70,7 +70,7 @@ module Webistrano
               set :my_target, do_mklink(previous_release)
             
               if previous_release
-                run "rm -f #{current_path}; cmd /c mklink /D #{my_link} #{my_target}; true"
+                run "rm -Rf #{current_path}; cmd /c mklink /D #{my_link} #{my_target}; true"
               else
                 logger.important "no previous release to rollback to, rollback of symlink skipped"
               end
@@ -78,7 +78,7 @@ module Webistrano
         
             set :my_target, do_mklink(latest_release)
         
-            run "rm -f #{current_path} && cmd /c mklink /D #{my_link} #{my_target}"
+            run "rm -Rf #{current_path} && cmd /c mklink /D #{my_link} #{my_target}"
           end
             
           namespace :rollback do
