@@ -13,9 +13,14 @@ module Webistrano
       EOS
       
       TASKS =  <<-'EOS'
+        # Converts a Cygwin path to a Windows path
+        def cyg_to_win(path)
+          path.gsub(/^\/cygdrive\/([a-z])\//i, '\1:/')
+        end
+        
         # Converts a string path for use with the mklink command
         def do_mklink(path)
-          path.gsub("/", "\\\\\\")
+          cyg_to_win(path).gsub("/", "\\\\\\")
         end
       
         # allocate a pty by default as some systems have problems without
@@ -48,7 +53,6 @@ module Webistrano
             # mkdir -p is making sure that the directories are there for some SCM's that don't
             # save empty folders
             run <<-CMD
-              /bin/find #{latest_release} -type d -iname .svn -or -type d -iname .git | xargs rm -Rf && \
               rm -Rf #{latest_release}/log && cmd /c mklink /D #{my_link}\\\\log #{my_target}\\\\log
             CMD
           end
