@@ -40,7 +40,7 @@ load 'deploy'
 # CUSTOM RECIPES
 # ================================================================
 
-<% @stage.recipes.each do |recipe| %>
+<% @stage.recipes.ordered.each do |recipe| %>
   <%= recipe.body %>
 <% end %>
 
