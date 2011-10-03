@@ -15,9 +15,11 @@ module Webistrano
       TASKS =  <<-'EOS'
         # Converts a Cygwin path to a Windows path
         def cyg_to_win(path)
+          # Could use capture here with cygpath, but may be unnecessary overhead for the external call.
           path.gsub(/^\/cygdrive\/([a-z])\//i, '\1:/')
         end
         
+        #TODO Rename this to cyg_to_mixed and could use cygpath on the server
         # Converts a string path for use with the mklink command
         def do_mklink(path)
           cyg_to_win(path).gsub("/", "\\\\\\")
