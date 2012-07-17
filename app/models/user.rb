@@ -27,8 +27,9 @@ class User < ActiveRecord::Base
   end
   
   # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
-  def self.authenticate(login, password, strategy = AuthenticationStrategies::WebistranoStrategy)
-    strategy.authenticate(login, password)
+  def self.authenticate(login, password)
+    u = find_by_login_and_disabled(login, nil) # need to get the salt
+    u && u.authenticated?(password) ? u : nil
   end
 
   # Encrypts some data with the salt.
