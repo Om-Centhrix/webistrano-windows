@@ -1,11 +1,11 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
-class UserWrapperTest < ActiveSupport::TestCase
+class UserDecoratorTest < ActiveSupport::TestCase
   
   def test_authenticate
     strategy = MockStrategy.new
-    user_wrapper = UserWrapper.authenticate("myLogin", "myPassword", strategy)
-    assert_equal({ :login => "myLogin", :password => "myPassword" }, user_wrapper.user)
+    user_wrapper = UserDecorator.authenticate("myLogin", "myPassword", strategy)
+    assert_equal({ :login => "myLogin", :password => "myPassword" }, user_wrapper.model)
   end
 end
 
