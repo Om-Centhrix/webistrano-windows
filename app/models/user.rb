@@ -3,7 +3,7 @@ class User < ActiveRecord::Base
   has_many :deployments, :dependent => :nullify, :order => 'created_at DESC'
   
   # Virtual attribute for the unencrypted password
-  attr_accessor :password
+  #attr_accessor :password
   
   attr_accessible :login, :email, :password, :password_confirmation, :time_zone, :tz
 
@@ -15,10 +15,19 @@ class User < ActiveRecord::Base
   validates_length_of       :login,    :within => 3..40
   validates_length_of       :email,    :within => 3..100
   validates_uniqueness_of   :login, :email, :case_sensitive => false
-  before_save :encrypt_password
   
   named_scope :enabled, :conditions => {:disabled => nil}
   named_scope :disabled, :conditions => "disabled IS NOT NULL"
+
+  CROWD_APPLICATION_USERNAME = "webistrano"
+  CROWD_APPLICATION_PASSWORD = "foobar"
+  CROWD_REST_HOST = "localhost"
+  CROWD_REST_AUTHENTICATION_URL = "http://#{CROWD_APPLICATION_USERNAME}:#{CROWD_APPLICATION_PASSWORD}@#{CROWD_REST_HOST}:8095/crowd/rest/usermanagement/1/authentication?username=__username__"
+  CROWD_REST_AUTHENTICATION_REQUEST_BODY = %(<?xml version="1.0" encoding="UTF-8"?>
+    <password>
+      <value>__password__</value>
+    </password>
+  )
     
   def validate_on_update
     if User.find(self.id).admin? && !self.admin?
@@ -26,10 +35,18 @@ class User < ActiveRecord::Base
     end
   end
   
-  # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
-  def self.authenticate(login, password)
-    u = find_by_login_and_disabled(login, nil) # need to get the salt
-    u && u.authenticated?(password) ? u : nil
+  # Authenticates a user by their user name and unencrypted password.  Returns the user or nil.
+  def self.authenticate(username, password)
+
+    url = CROWD_REST_AUTHENTICATION_URL.gsub("__username__", username)
+    body = CROWD_REST_AUTHENTICATION_REQUEST_BODY.gsub("__password__", password)
+
+    begin
+      RestClient.post(url, body, {:content_type => "application/xml"})
+      u = find_by_login_and_disabled(username, nil)
+    rescue RestClient::BadRequest
+      return nil
+    end
   end
 
   # Encrypts some data with the salt.
@@ -40,10 +57,6 @@ class User < ActiveRecord::Base
   # Encrypts the password with the user salt
   def encrypt(password)
     self.class.encrypt(password, salt)
-  end
-
-  def authenticated?(password)
-    crypted_password == encrypt(password)
   end
 
   def remember_token?
@@ -107,15 +120,9 @@ class User < ActiveRecord::Base
   end
 
   protected
-    # before filter 
-    def encrypt_password
-      return if password.blank?
-      self.salt = Digest::SHA1.hexdigest("--#{Time.now.to_s}--#{login}--") if new_record?
-      self.crypted_password = encrypt(password)
-    end
     
     def password_required?
-      WebistranoConfig[:authentication_method] != :cas && (crypted_password.blank? || !password.blank?)
+      WebistranoConfig[:authentication_method] != :cas
     end
 
     

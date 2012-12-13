@@ -10,9 +10,8 @@ gem "open4", "0.9.3"
 gem "exception_notification", "2.3.3.0"
 gem 'mysql', '~> 2.8.1'
 gem "mongrel", '>= 1.2.0.pre2'
-gem "crowd_rails", "~> 0.5.1"
-gem "crowd-stefanwille", "~> 0.5.1"
-gem "draper", "~> 0.7.4"
+gem "rest-client", "=1.6.7"
+gem "json", "=1.7.5"
 
 group :test do
   gem "mocha", "0.9.8"
