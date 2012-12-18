@@ -27,12 +27,6 @@ class User < ActiveRecord::Base
       <value>__password__</value>
     </password>
   )
-    
-  def validate_on_update
-    if User.find(self.id).admin? && !self.admin?
-      errors.add('admin', 'status can no be revoked as there needs to be one admin left.') if User.admin_count == 1
-    end
-  end
   
   # Authenticates a user by their user name and unencrypted password.  Returns the user or nil.
   def self.authenticate(login, password)
@@ -91,12 +85,15 @@ class User < ActiveRecord::Base
   
   def revoke_admin!
     self.admin = 0
-    self.save!
+
+    if User.find(self.id).admin? && User.admin_count > 1
+      self.save(false)
+    end
   end
   
   def make_admin!
     self.admin = 1
-    self.save!
+    self.save(false)
   end
   
   def self.admin_count

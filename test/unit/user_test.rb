@@ -4,7 +4,14 @@ class UserTest < ActiveSupport::TestCase
   # Be sure to include AuthenticatedTestHelper in test/test_helper.rb instead.
   # Then, you can remove it from this and the functional test.
   include AuthenticatedTestHelper
+  include RR::Adapters::TestUnit
+
   fixtures :users
+
+  def setup()
+    stub(RestClient).put()
+    stub(RestClient).post()
+  end
 
   def test_should_create_user
     assert_difference 'User.count' do
@@ -20,45 +27,84 @@ class UserTest < ActiveSupport::TestCase
     end
   end
 
-  def test_should_require_password
-    assert_no_difference 'User.count' do
-      u = create_user(:password => nil)
-      assert u.errors.on(:password)
+  def test_save_password_successful()
+
+    user = create_user
+    user.password = "foobar"
+    user.password_confirmation = "foobar"
+
+    stub(user).password_valid?() { true }
+
+    mock(RestClient).put(User::CROWD_REST_CHANGE_PASSWORD_URL.gsub("__login__", user.login),
+                         User::CROWD_REST_PASSWORD_BODY.gsub("__password__", user.password),
+                         {:content_type => "application/xml"})
+
+    user.send(:save_password)
+  end
+
+  def test_save_password_unsuccessful()
+
+    user = create_user
+    user.password = "foobar"
+    user.password_confirmation = "foobar"
+
+    stub(user).password_valid?() { true }
+
+    mock(RestClient).put(User::CROWD_REST_CHANGE_PASSWORD_URL.gsub("__login__", user.login),
+                         User::CROWD_REST_PASSWORD_BODY.gsub("__password__", user.password),
+                         {:content_type => "application/xml"}) do
+
+                            raise RestClient::BadRequest
+                          end
+
+    assert_raise(RuntimeError) do
+      user.send(:save_password)
     end
-  end
-
-  def test_should_require_password_confirmation
-    assert_no_difference 'User.count' do
-      u = create_user(:password_confirmation => nil)
-      assert u.errors.on(:password_confirmation)
-    end
-  end
-
-  def test_should_require_email
-    assert_no_difference 'User.count' do
-      u = create_user(:email => nil)
-      assert u.errors.on(:email)
-    end
-  end
-  
-  def test_should_not_authenticate_if_disabled
-    assert_equal users(:quentin), User.authenticate('quentin', 'test')
-    User.find_by_login("quentin").disable
-    assert_equal nil, User.authenticate('quentin', 'test')
-  end
-
-  def test_should_reset_password
-    users(:quentin).update_attributes(:password => 'new password', :password_confirmation => 'new password')
-    assert_equal users(:quentin), User.authenticate('quentin', 'new password')
-  end
-
-  def test_should_not_rehash_password
-    users(:quentin).update_attributes(:login => 'quentin2')
-    assert_equal users(:quentin), User.authenticate('quentin2', 'test')
-  end
+    
+  end  
 
   def test_should_authenticate_user
-    assert_equal users(:quentin), User.authenticate('quentin', 'test')
+    expected_user = create_user
+    expected_user.password = "foobar"
+    expected_user.password_confirmation = "foobar"
+
+    mock(RestClient).post(User::CROWD_REST_AUTHENTICATION_URL.gsub("__login__", expected_user.login),
+                          User::CROWD_REST_PASSWORD_BODY.gsub("__password__", expected_user.password),
+                          {:content_type => "application/xml"})
+
+    actual_user = User.authenticate(expected_user.login, expected_user.password)
+    assert_equal(expected_user, actual_user)
+  end
+
+  def test_should_not_authenticate_if_disabled
+    user = create_user
+    user.disable
+    user.save(false)
+    user.password = "foobar"
+    user.password_confirmation = "foobar"
+
+    mock(RestClient).post(User::CROWD_REST_AUTHENTICATION_URL.gsub("__login__", user.login),
+                          User::CROWD_REST_PASSWORD_BODY.gsub("__password__", user.password),
+                          {:content_type => "application/xml"})
+
+    actual_user = User.authenticate(user.login, user.password)
+    assert_nil(actual_user)
+  end  
+
+  def test_should_not_authenticate_user
+    user = create_user
+    user.password = "foobar"
+    user.password_confirmation = "foobar"
+
+    mock(RestClient).post(User::CROWD_REST_AUTHENTICATION_URL.gsub("__login__", user.login),
+                          User::CROWD_REST_PASSWORD_BODY.gsub("__password__", user.password),
+                          {:content_type => "application/xml"}) do
+
+                            raise RestClient::BadRequest
+                          end
+
+    actual_user = User.authenticate(user.login, user.password)
+    assert_nil(actual_user)
   end
 
   def test_should_set_remember_token
@@ -125,9 +171,9 @@ class UserTest < ActiveSupport::TestCase
     assert !user.admin?
     
     # check that the admin status of admin cannot be taken
-    assert_raise(ActiveRecord::RecordInvalid){
-      admin.revoke_admin!
-    }
+    admin.revoke_admin!
+    admin = User.find(:first)
+    assert admin.admin?
   end
   
   def test_recent_deployments

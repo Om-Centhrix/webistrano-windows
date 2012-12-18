@@ -14,5 +14,5 @@ gem "rest-client", "=1.6.7"
 gem "json", "=1.7.5"
 
 group :test do
-  gem "mocha", "0.9.8"
+  gem "rr", "1.0.4", :require => 'rr'
 end
