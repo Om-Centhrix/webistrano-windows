@@ -231,8 +231,176 @@ class UserTest < ActiveSupport::TestCase
     assert_equal [user], User.disabled
   end
 
+  def test_create_from_crowd_user_admin
+
+    user_json = JSON.parse(CROWD_USER_ADMIN_ACTIVE_JSON)
+
+    User.create_or_update_from_crowd_user(user_json)
+
+    created_user = User.find_by_email("zap@doop.net")
+    assert_not_nil(created_user)
+    assert_equal("zap", created_user.login)
+    assert(created_user.admin?)
+    assert(!created_user.disabled)
+  end
+
+  def test_create_from_crowd_user_non_admin
+
+    user_json = JSON.parse(CROWD_USER_NONADMIN_DISABLED_JSON)
+
+    User.create_or_update_from_crowd_user(user_json)
+
+    created_user = User.find_by_email("fry@planetexpress.com")
+    assert_not_nil(created_user)
+    assert_equal("fry", created_user.login)
+    assert(!created_user.admin?)
+    assert(created_user.disabled?)
+  end
+
+  def test_update_from_crowd_user_admin
+    user_json = JSON.parse(CROWD_USER_ADMIN_ACTIVE_JSON)
+
+    seed_user = User.new(:login => "zap"); seed_user.save(false)
+
+    User.create_or_update_from_crowd_user(user_json)
+
+    updated_user = User.find_by_email("zap@doop.net")
+    assert_not_nil(updated_user)
+    assert_equal("zap", updated_user.login)
+    assert(updated_user.admin?)
+    assert(!updated_user.disabled?)  
+  end
+
+  def test_update_from_crowd_user_non_admin
+
+    user_json = JSON.parse(CROWD_USER_NONADMIN_DISABLED_JSON)
+
+    seed_user = User.new(:login => "fry"); seed_user.save(false)
+
+    User.create_or_update_from_crowd_user(user_json)
+
+    updated_user = User.find_by_email("fry@planetexpress.com")
+    assert_not_nil(updated_user)
+    assert_equal("fry", updated_user.login)
+    assert(!updated_user.admin?)
+    assert(updated_user.disabled?)    
+  end
+
+  def test_create_or_update_from_crowd_users
+
+    mock(User).create_or_update_from_crowd_user("fry")
+    mock(User).create_or_update_from_crowd_user("zap")
+    stub(CrowdUsersEndpoint).get(anything) { | p | p }
+
+    User.create_or_update_from_crowd_users(JSON.parse(CROWD_USERS_JSON))
+
+  end
+
+  CROWD_USERS_JSON = %({
+    "expand" : "user",
+    "users" : [
+      {
+        "link" : {
+          "rel" : "self",
+          "href" : "http://localhost:8095/crowd/rest/usermanagement/1/user?username=fry"
+        },
+        "name" : "fry"
+      },
+      {
+        "link" : {
+          "rel" : "self",
+          "href" : "http://localhost:8095/crowd/rest/usermanagement/1/user?username=zap"
+        },
+        "name" : "zap"
+      }
+    ]
+  })
+
+  CROWD_USER_ADMIN_ACTIVE_JSON = %({
+    "expand" : "attributes",
+    "first-name" : "Zap",
+    "last-name" : "Brannigan",
+    "active" : true,
+    "email" : "zap@doop.net",
+    "attributes" : {
+      "attributes" : [
+        {
+          "values" : [
+            "false"
+          ],
+          "name" : "requiresPasswordChange"
+        },
+        {
+          "values" : [
+            "0"
+          ],
+          "name" : "invalidPasswordAttempts"
+        },
+        {
+          "values" : [
+            "1"
+          ],
+          "name" : "admin"
+        },
+        {
+          "values" : [
+            "1355946934385"
+          ],
+          "name" : "lastAuthenticated"
+        },
+        {
+          "values" : [
+            "1355863333318"
+          ],
+          "name" : "passwordLastChanged"
+        }
+      ]
+    },
+    "name" : "zap",
+    "display-name" : "Zap Brannigan"
+  })
+
+  CROWD_USER_NONADMIN_DISABLED_JSON = %({
+    "expand" : "attributes",
+    "first-name" : "Philip",
+    "last-name" : "Fry",
+    "active" : false,
+    "email" : "fry@planetexpress.com",
+    "attributes" : {
+      "attributes" : [
+        {
+          "values" : [
+            "false"
+          ],
+          "name" : "requiresPasswordChange"
+        },
+        {
+          "values" : [
+            "0"
+          ],
+          "name" : "invalidPasswordAttempts"
+        },
+        {
+          "values" : [
+            "1355946934385"
+          ],
+          "name" : "lastAuthenticated"
+        },
+        {
+          "values" : [
+            "1355863333318"
+          ],
+          "name" : "passwordLastChanged"
+        }
+      ]
+    },
+    "name" : "fry",
+    "display-name" : "Philip J. Fry"
+  })
+
   protected
     def create_user(options = {})
       User.create({ :login => 'quire', :email => 'quire@example.com', :password => 'quire', :password_confirmation => 'quire' }.merge(options))
     end
+  #end protected
 end

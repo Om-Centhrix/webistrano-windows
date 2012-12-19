@@ -17,11 +17,8 @@ class User < ActiveRecord::Base
   named_scope :enabled, :conditions => {:disabled => nil}
   named_scope :disabled, :conditions => "disabled IS NOT NULL"
 
-  CROWD_APPLICATION_USERNAME = "webistrano"
-  CROWD_APPLICATION_PASSWORD = "foobar"
-  CROWD_REST_HOST = "localhost"
-  CROWD_REST_AUTHENTICATION_URL = "http://#{CROWD_APPLICATION_USERNAME}:#{CROWD_APPLICATION_PASSWORD}@#{CROWD_REST_HOST}:8095/crowd/rest/usermanagement/1/authentication?username=__login__"
-  CROWD_REST_CHANGE_PASSWORD_URL = "http://#{CROWD_APPLICATION_USERNAME}:#{CROWD_APPLICATION_PASSWORD}@#{CROWD_REST_HOST}:8095/crowd/rest/usermanagement/1/user/password?username=__login__"
+  CROWD_REST_AUTHENTICATION_URL = "http://#{CrowdUsersEndpoint::CROWD_APPLICATION_USERNAME}:#{CrowdUsersEndpoint::CROWD_APPLICATION_PASSWORD}@#{CrowdUsersEndpoint::CROWD_REST_HOST}:8095/crowd/rest/usermanagement/1/authentication?username=__login__"
+  CROWD_REST_CHANGE_PASSWORD_URL = "http://#{CrowdUsersEndpoint::CROWD_APPLICATION_USERNAME}:#{CrowdUsersEndpoint::CROWD_APPLICATION_PASSWORD}@#{CrowdUsersEndpoint::CROWD_REST_HOST}:8095/crowd/rest/usermanagement/1/user/password?username=__login__"
   CROWD_REST_PASSWORD_BODY = %(<?xml version="1.0" encoding="UTF-8"?>
     <password>
       <value>__password__</value>
@@ -124,6 +121,45 @@ class User < ActiveRecord::Base
     errors.add_to_base("password must be between 4 and 40 characters long") unless (4..40).to_a.include?(@password.size)
 
     return errors.empty?
+  end
+
+  def self.create_or_update_from_crowd_users(json)
+
+    logins = json["users"].map { | user | user["name"] }
+    logins.each do | login |
+      user_json = CrowdUsersEndpoint.get(login)
+      
+      if user_json.nil?
+        Rails.logger.error("Crowd Users Sync: could not get user #{login} listed in crowd user index")
+        next
+      end
+
+      create_or_update_from_crowd_user(user_json)
+    end
+  end
+
+  def self.create_or_update_from_crowd_user(user_json)
+
+    user_attributes = Hash[ user_json["attributes"]["attributes"].map { | attr | [attr["name"], attr["values"].first] } ]
+    user = find_by_login(user_json["name"])
+    if user.nil? #user doesn't exist in webistrano db; create a new one
+      user = User.new(:login     =>    user_json["name"],
+                      :email     =>    user_json["email"])
+
+      user.admin = user_attributes["admin"].to_i
+      user.disabled = user_json["active"] ? nil : Time.now
+
+      user.save(false)
+
+    else #user already exists in webistrano do; update existing
+      user.email = user_json["email"]
+      user.admin = user_attributes["admin"].to_i
+      user.disabled = user_json["active"] ? nil : Time.now
+
+      user.save(false)
+    end
+
+    user
   end
 
   protected
