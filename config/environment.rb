@@ -13,6 +13,9 @@ require File.join(File.dirname(__FILE__), 'boot')
 # load Webistrano configuration
 require "#{RAILS_ROOT}/config/webistrano_config"
 
+#load Crowd configuration
+require "#{RAILS_ROOT}/config/crowd_config"
+
 Rails::Initializer.run do |config|
 
   # Your secret key for verifying cookie session data integrity.

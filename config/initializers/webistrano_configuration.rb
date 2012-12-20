@@ -12,7 +12,3 @@ Notification.webistrano_sender_address = WebistranoConfig[:webistrano_sender_add
 
 ExceptionNotification::Notifier.exception_recipients = WebistranoConfig[:exception_recipients]
 ExceptionNotification::Notifier.sender_address = WebistranoConfig[:exception_sender_address]
-
-#crowd.yml should ideally be a symlink so that the Crowd application username/password is not
-#checked into the repository.  Custom dictates the file live in /usr/local/share/webistrano/crowd.yml
-CrowdUsersEndpoint.config = YAML::load_file(RAILS_ROOT + '/config/crowd.yml')

@@ -17,8 +17,8 @@ class User < ActiveRecord::Base
   named_scope :enabled, :conditions => {:disabled => nil}
   named_scope :disabled, :conditions => "disabled IS NOT NULL"
 
-  CROWD_REST_AUTHENTICATION_URL = "http://#{CrowdUsersEndpoint.config['application']}:#{CrowdUsersEndpoint.config['password']}@#{CrowdUsersEndpoint.config['host']}:#{CrowdUsersEndpoint.config['port']}/crowd/rest/usermanagement/1/authentication?username=__login__"
-  CROWD_REST_CHANGE_PASSWORD_URL = "http://#{CrowdUsersEndpoint.config['application']}:#{CrowdUsersEndpoint.config['password']}@#{CrowdUsersEndpoint.config['host']}:#{CrowdUsersEndpoint.config['port']}/crowd/rest/usermanagement/1/user/password?username=__login__"
+  CROWD_REST_AUTHENTICATION_URL = "http://#{CrowdConfiguration["application"]}:#{CrowdConfiguration["password"]}@#{CrowdConfiguration["host"]}:#{CrowdConfiguration["port"]}/crowd/rest/usermanagement/1/authentication?username=__login__"
+  CROWD_REST_CHANGE_PASSWORD_URL = "http://#{CrowdConfiguration["application"]}:#{CrowdConfiguration["password"]}@#{CrowdConfiguration["host"]}:#{CrowdConfiguration["port"]}/crowd/rest/usermanagement/1/user/password?username=__login__"
   CROWD_REST_PASSWORD_BODY = %(<?xml version="1.0" encoding="UTF-8"?>
     <password>
       <value>__password__</value>
