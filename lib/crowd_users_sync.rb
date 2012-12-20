@@ -22,5 +22,3 @@ module CrowdUsersSync
   module_function(:start)
 
 end
-
-CrowdUsersSync::start
