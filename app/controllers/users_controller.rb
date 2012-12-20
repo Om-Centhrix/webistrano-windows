@@ -115,6 +115,17 @@ class UsersController < ApplicationController
       format.xml  { render :xml => @user.deployments.to_xml }
     end
   end
+
+  # GET /users/sync_with_crowd
+  def sync_with_crowd
+    begin
+      CrowdUsersSync::sync
+      redirect_to users_path, :notice => "Sync with Crowd successful"
+    rescue Exception => e
+      logger.error(e)
+      redirect_to users_path, :notice => "Sync with Crowd failed"
+    end
+  end
   
   protected
   def ensure_admin_or_my_entry

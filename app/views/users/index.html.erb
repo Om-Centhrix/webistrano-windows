@@ -37,8 +37,10 @@
 <% end %>
 
 <% if current_user.admin? %>
-  <br />
-  <%= link_to 'New user', new_user_path, :class => 'arrow_link' %>
+  <ul class="links">
+    <li><%= link_to "Sync Users From Crowd", sync_with_crowd_users_path, :class => 'arrow_link' %></li>
+    <li><%= link_to 'New User', new_user_path, :class => 'arrow_link' %></li>
+  </ul>
 <% end %>
 
 </fieldset>
