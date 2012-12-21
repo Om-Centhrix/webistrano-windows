@@ -1,8 +1,7 @@
 source "http://rubygems.org"
 
-gem 'bundler', ">=1.0.10"
+gem 'bundler', "1.2.3"
 gem "rails", "2.3.11"
-gem "mysql"
 gem "erubis"
 gem "rake"
 gem "syntax", "1.0.0"
@@ -13,3 +12,6 @@ gem "exception_notification", "2.3.3.0"
 group :test do
   gem "mocha", "0.9.8"
 end
+
+gem 'jruby-openssl'
+gem 'activerecord-jdbcmysql-adapter'
