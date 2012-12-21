@@ -10,7 +10,7 @@ class Project < ActiveRecord::Base
   
   after_create :create_template_defaults
   
-  attr_accessible :name, :description, :template
+  attr_accessible :name, :description, :template, :active
 
   named_scope :active, :conditions => { :active => true }
   named_scope :inactive, :conditions => { :active => false }
