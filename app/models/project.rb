@@ -11,14 +11,7 @@ class Project < ActiveRecord::Base
   after_create :create_template_defaults
   
   attr_accessible :name, :description, :template
-
-  named_scope :active, :conditions => { :active => true }
-  named_scope :inactive, :conditions => { :active => false }
-
-  def active?
-    active
-  end
-
+  
   # creates the default configuration parameters based on the template
   def create_template_defaults
     unless template.blank?
