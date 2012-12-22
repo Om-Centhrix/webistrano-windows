@@ -1,9 +1,5 @@
 class CrowdUsersEndpoint
 
-  CROWD_APPLICATION_USERNAME = "webistrano"
-  CROWD_APPLICATION_PASSWORD = "foobar"
-  CROWD_REST_HOST = "localhost"
-
   USER_INDEX_URL = "http://#{CrowdConfiguration["application"]}:#{CrowdConfiguration["password"]}@#{CrowdConfiguration["host"]}:#{CrowdConfiguration["port"]}/crowd/rest/usermanagement/1/search?entity-type=user"
   USER_GET_URL = "http://#{CrowdConfiguration["application"]}:#{CrowdConfiguration["password"]}@#{CrowdConfiguration["host"]}:#{CrowdConfiguration["port"]}/crowd/rest/usermanagement/1/user?username=__login__&expand=attributes"
 
