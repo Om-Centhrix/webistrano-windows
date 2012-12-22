@@ -4,11 +4,11 @@
     <% if @project.stages.count > 0 %>
       <p><strong>Choose a stage:</strong></p>
       <% for stage in @project.stages %>
-          <p><%= link_to h(stage.name), project_stage_path(@project, stage), :class => 'arrow_link'  %></p>
+          <p><%= conditional_link @project.active?, h(stage.name), project_stage_path(@project, stage), :class => 'arrow_link'  %></p>
       <% end %>
     <% else %>  
       <p><strong>No stage configured yet</strong></p>
-      <%= link_to 'New stage', new_project_stage_path(@project), :class => 'arrow_link' %>
+      <%= conditional_link @project.active?, 'New stage', new_project_stage_path(@project), :class => 'arrow_link' %>
     <% end %>
   </div>
   <div class="special_box_bottom"></div>
@@ -43,7 +43,7 @@
   <legend>Project configuration</legend>
   <%= render(:partial => 'configs')%>
   <br />
-  <%= link_to 'New configuration', new_project_project_configuration_path(@project), :class => 'arrow_link' %>
+  <%= conditional_link @project.active?, 'New configuration', new_project_project_configuration_path(@project), :class => 'arrow_link' %>
 </fieldset>
 
 <br /><br />
@@ -52,7 +52,7 @@
   <legend>Stages</legend>
   <%= render(:partial => 'stages')%>
   <br />
-  <%= link_to 'New stage', new_project_stage_path(@project), :class => 'arrow_link' %>
+  <%= conditional_link @project.active?, 'New stage', new_project_stage_path(@project), :class => 'arrow_link' %>
 </fieldset>
 
 <br /><br />

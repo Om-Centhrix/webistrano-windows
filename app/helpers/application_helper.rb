@@ -131,5 +131,12 @@ module ApplicationHelper
     
     block ? concat(out) : out
   end
+
+  def conditional_link(condition, text, *args)
+    link_to_unless(!condition, text, *args) do | _ |
+      classes = args.last[:class] || ""
+      %(<span class="#{[classes, "disabled_link"].join(" ")}">#{text}</span>)
+    end
+  end
   
 end
