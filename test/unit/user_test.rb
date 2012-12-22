@@ -9,8 +9,7 @@ class UserTest < ActiveSupport::TestCase
   fixtures :users
 
   def setup()
-    stub(RestClient).put()
-    stub(RestClient).post()
+    stub(CrowdUsersEndpoint).update_password(anything, anything) { Hash.new }
   end
 
   def test_should_create_user
@@ -35,9 +34,7 @@ class UserTest < ActiveSupport::TestCase
 
     stub(user).password_valid?() { true }
 
-    mock(RestClient).put(User::CROWD_REST_CHANGE_PASSWORD_URL.gsub("__login__", user.login),
-                         User::CROWD_REST_PASSWORD_BODY.gsub("__password__", user.password),
-                         {:content_type => "application/xml"})
+    stub(CrowdUsersEndpoint).update_password(user.login, user.password) { Hash.new }
 
     user.send(:save_password)
   end
@@ -50,12 +47,9 @@ class UserTest < ActiveSupport::TestCase
 
     stub(user).password_valid?() { true }
 
-    mock(RestClient).put(User::CROWD_REST_CHANGE_PASSWORD_URL.gsub("__login__", user.login),
-                         User::CROWD_REST_PASSWORD_BODY.gsub("__password__", user.password),
-                         {:content_type => "application/xml"}) do
-
-                            raise RestClient::BadRequest
-                          end
+    stub(CrowdUsersEndpoint).update_password(user.login, user.password) do
+      raise "Could Not Save Password"
+    end
 
     assert_raise(RuntimeError) do
       user.send(:save_password)
@@ -68,9 +62,7 @@ class UserTest < ActiveSupport::TestCase
     expected_user.password = "foobar"
     expected_user.password_confirmation = "foobar"
 
-    mock(RestClient).post(User::CROWD_REST_AUTHENTICATION_URL.gsub("__login__", expected_user.login),
-                          User::CROWD_REST_PASSWORD_BODY.gsub("__password__", expected_user.password),
-                          {:content_type => "application/xml"})
+    stub(CrowdUsersEndpoint).authenticate(expected_user.login, expected_user.password) { Hash.new }
 
     actual_user = User.authenticate(expected_user.login, expected_user.password)
     assert_equal(expected_user, actual_user)
@@ -83,9 +75,7 @@ class UserTest < ActiveSupport::TestCase
     user.password = "foobar"
     user.password_confirmation = "foobar"
 
-    mock(RestClient).post(User::CROWD_REST_AUTHENTICATION_URL.gsub("__login__", user.login),
-                          User::CROWD_REST_PASSWORD_BODY.gsub("__password__", user.password),
-                          {:content_type => "application/xml"})
+    stub(CrowdUsersEndpoint).authenticate(user.login, user.password) { Hash.new }
 
     actual_user = User.authenticate(user.login, user.password)
     assert_nil(actual_user)
@@ -96,12 +86,7 @@ class UserTest < ActiveSupport::TestCase
     user.password = "foobar"
     user.password_confirmation = "foobar"
 
-    mock(RestClient).post(User::CROWD_REST_AUTHENTICATION_URL.gsub("__login__", user.login),
-                          User::CROWD_REST_PASSWORD_BODY.gsub("__password__", user.password),
-                          {:content_type => "application/xml"}) do
-
-                            raise RestClient::BadRequest
-                          end
+    stub(CrowdUsersEndpoint).authenticate(user.login, user.password) { nil }
 
     actual_user = User.authenticate(user.login, user.password)
     assert_nil(actual_user)

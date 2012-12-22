@@ -16,27 +16,10 @@ class User < ActiveRecord::Base
   
   named_scope :enabled, :conditions => {:disabled => nil}
   named_scope :disabled, :conditions => "disabled IS NOT NULL"
-
-  CROWD_REST_AUTHENTICATION_URL = "http://#{CrowdConfiguration["application"]}:#{CrowdConfiguration["password"]}@#{CrowdConfiguration["host"]}:#{CrowdConfiguration["port"]}/crowd/rest/usermanagement/1/authentication?username=__login__"
-  CROWD_REST_CHANGE_PASSWORD_URL = "http://#{CrowdConfiguration["application"]}:#{CrowdConfiguration["password"]}@#{CrowdConfiguration["host"]}:#{CrowdConfiguration["port"]}/crowd/rest/usermanagement/1/user/password?username=__login__"
-  CROWD_REST_PASSWORD_BODY = %(<?xml version="1.0" encoding="UTF-8"?>
-    <password>
-      <value>__password__</value>
-    </password>
-  )
   
   # Authenticates a user by their user name and unencrypted password.  Returns the user or nil.
   def self.authenticate(login, password)
-
-    url = CROWD_REST_AUTHENTICATION_URL.gsub("__login__", login)
-    body = CROWD_REST_PASSWORD_BODY.gsub("__password__", password)
-
-    begin
-      RestClient.post(url, body, {:content_type => "application/xml"})
-      u = find_by_login_and_disabled(login, nil)
-    rescue RestClient::BadRequest
-      return nil
-    end
+    CrowdUsersEndpoint.authenticate(login, password) ? find_by_login_and_disabled(login, nil) : nil
   end 
 
   # Encrypts some data with the salt.
@@ -165,19 +148,18 @@ class User < ActiveRecord::Base
   protected
 
     def save_password
+      result = nil
       if password_valid?
 
-        url = CROWD_REST_CHANGE_PASSWORD_URL.gsub("__login__", login)
-        body = CROWD_REST_PASSWORD_BODY.gsub("__password__", password)
-
-        begin
-          RestClient.put(url, body, {:content_type => "application/xml"})
-        rescue RestClient::BadRequest
-          raise "Could Not Save Password"
+        result = CrowdUsersEndpoint.update_password(login, @password)
+        unless result
+          raise "Could Not Save Password" #Shouldn't happen as a normal use case.
+                                          #This will only happen if there's a problem with the crowd server or the username is somehow wrong
         end
 
         @password = nil; @password_confirmation = nil
       end
+      result
     end 
     
     def password_required?
