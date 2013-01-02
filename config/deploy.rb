@@ -7,12 +7,13 @@ set :deploy_via, :remote_cache
 set :keep_releases, "3"
 
 set :user, "deployer"
-set :password, ""
 set :use_sudo, false
+
+ssh_options[:forward_agent] = true
+ENV['SSH_AUTH_SOCK'] = '/home/deployer/.ssh/ssh-agent.sock'
 
 set :scm_verbose, false
 set :scm, :git
-# Or: `accurev`, `bzr`, `cvs`, `darcs`, `git`, `mercurial`, `perforce`, `subversion` or `none`
 
 role :web, "lorne"                          # Your HTTP server, Apache/etc
 role :app, "lorne"                          # This may be the same as your `Web` server
@@ -26,6 +27,7 @@ after "deploy:create_symlink", "deploy:after_symlink"
 
 namespace :deploy do
     task :after_symlink do
+        run "rm -f #{latest_release}/config/crowd.yml && ln -s #{shared_path}/config/crowd.yml #{latest_release}/config/crowd.yml"
         run "rm -f #{latest_release}/config/database.yml && ln -s #{shared_path}/config/database.yml #{latest_release}/config/database.yml"
         run "rm -f #{latest_release}/config/webistrano_config.rb && ln -s #{shared_path}/config/webistrano_config.rb #{latest_release}/config/webistrano_config.rb"
     end
