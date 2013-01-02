@@ -13,6 +13,9 @@ require File.join(File.dirname(__FILE__), 'boot')
 # load Webistrano configuration
 require "#{RAILS_ROOT}/config/webistrano_config"
 
+#load Crowd configuration
+require "#{RAILS_ROOT}/config/crowd_config"
+
 Rails::Initializer.run do |config|
 
   # Your secret key for verifying cookie session data integrity.
@@ -40,6 +43,7 @@ end
 require 'open4'
 require 'capistrano/cli'
 require 'syntax/convertors/html'
+require 'rest_client'
 
 # delete cached stylesheet on boot in order to delete stale versions
 File.delete("#{RAILS_ROOT}/public/stylesheets/application.css") if File.exists?("#{RAILS_ROOT}/public/stylesheets/application.css")
