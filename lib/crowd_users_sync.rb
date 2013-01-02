@@ -10,6 +10,7 @@ module CrowdUsersSync
   module_function(:sync)
 
   def start
+    sync
     scheduler = Rufus::Scheduler.start_new
     scheduler.every CROWD_USER_SYNC_INTERVAL do
       begin
