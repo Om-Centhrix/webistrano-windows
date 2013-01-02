@@ -1,10 +1,11 @@
 class CrowdUsersEndpoint
 
-  USER_INDEX_URL = "https://#{CrowdConfiguration["application"]}:#{CrowdConfiguration["password"]}@#{CrowdConfiguration["host"]}:#{CrowdConfiguration["port"]}/crowd/rest/usermanagement/1/search?entity-type=user"
-  USER_GET_URL = "https://#{CrowdConfiguration["application"]}:#{CrowdConfiguration["password"]}@#{CrowdConfiguration["host"]}:#{CrowdConfiguration["port"]}/crowd/rest/usermanagement/1/user?username=__login__&expand=attributes"
+  CROWD_USER_REST_URL = "#{CrowdConfiguration['protocol']}://#{CrowdConfiguration["application"]}:#{CrowdConfiguration["password"]}@#{CrowdConfiguration["host"]}:#{CrowdConfiguration["port"]}/crowd/rest/usermanagement/1"
+  USER_INDEX_URL = "#{CROWD_USER_REST_URL}/search?entity-type=user"
+  USER_GET_URL = "#{CROWD_USER_REST_URL}/user?username=__login__&expand=attributes"
 
-  CROWD_REST_AUTHENTICATION_URL = "https://#{CrowdConfiguration["application"]}:#{CrowdConfiguration["password"]}@#{CrowdConfiguration["host"]}:#{CrowdConfiguration["port"]}/crowd/rest/usermanagement/1/authentication?username=__login__"
-  CROWD_REST_CHANGE_PASSWORD_URL = "https://#{CrowdConfiguration["application"]}:#{CrowdConfiguration["password"]}@#{CrowdConfiguration["host"]}:#{CrowdConfiguration["port"]}/crowd/rest/usermanagement/1/user/password?username=__login__"
+  CROWD_REST_AUTHENTICATION_URL = "#{CROWD_USER_REST_URL}/authentication?username=__login__"
+  CROWD_REST_CHANGE_PASSWORD_URL = "#{CROWD_USER_REST_URL}/password?username=__login__"
   CROWD_REST_PASSWORD_BODY = %(<?xml version="1.0" encoding="UTF-8"?>
     <password>
       <value>__password__</value>
