@@ -6,7 +6,7 @@ class CrowdUsersEndpoint
 
   CROWD_REST_AUTHENTICATION_URL = "#{CROWD_USER_REST_URL}/authentication?username=__login__"
   CROWD_REST_CHANGE_PASSWORD_URL = "#{CROWD_USER_REST_URL}/password?username=__login__"
-  CROWD_REST_GET_USER_GROUPS = "#{CROWD_USER_REST_URL}/user/group/direct?username=__login__"
+  CROWD_REST_GET_USER_GROUPS = "#{CROWD_USER_REST_URL}/user/group/nested?username=__login__"
   ADD_USER_TO_GROUP_URL = "#{CROWD_USER_REST_URL}/user/group/direct?username=__login__"
   DELETE_USER_FROM_GROUP_URL = "#{CROWD_USER_REST_URL}/user/group/direct?username=__login__&groupname=__groupname__"
 
