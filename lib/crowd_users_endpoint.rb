@@ -6,11 +6,21 @@ class CrowdUsersEndpoint
 
   CROWD_REST_AUTHENTICATION_URL = "#{CROWD_USER_REST_URL}/authentication?username=__login__"
   CROWD_REST_CHANGE_PASSWORD_URL = "#{CROWD_USER_REST_URL}/password?username=__login__"
+  CROWD_REST_GET_USER_GROUPS = "#{CROWD_USER_REST_URL}/user/group/nested?username=__login__"
+  ADD_USER_TO_GROUP_URL = "#{CROWD_USER_REST_URL}/user/group/direct?username=__login__"
+  DELETE_USER_FROM_GROUP_URL = "#{CROWD_USER_REST_URL}/user/group/direct?username=__login__&groupname=__groupname__"
+
   CROWD_REST_PASSWORD_BODY = %(<?xml version="1.0" encoding="UTF-8"?>
     <password>
       <value>__password__</value>
     </password>
   )
+
+  CROWD_REST_ADD_GROUP_BODY = %(<?xml version="1.0" encoding="UTF-8"?>
+    <group name="__groupname__" />
+  )
+
+  ADMIN_GROUP_NAME = "crowd-administrators"
 
   def self.index
     JSON.parse(RestClient.get(USER_INDEX_URL, {:accept => "application/json"}))
@@ -38,7 +48,6 @@ class CrowdUsersEndpoint
   end
 
   def self.update_password(login, password)
-
     url = CROWD_REST_CHANGE_PASSWORD_URL.gsub("__login__", login)
     body = CROWD_REST_PASSWORD_BODY.gsub("__password__", password)
 
@@ -47,6 +56,42 @@ class CrowdUsersEndpoint
       Hash.new #Successful call to 'put' returns an empty string; Returning an empty hash for API consistency
     rescue RestClient::BadRequest
       raise "Could Not Save Password"
+    end
+  end
+
+  def self.admin?(login)
+    gs = groups(login)
+    !!gs["groups"].find { | h | h["name"] == ADMIN_GROUP_NAME }
+  end
+
+  def self.groups(login)
+    url = CROWD_REST_GET_USER_GROUPS.gsub("__login__", login)
+
+    begin
+      JSON.parse(RestClient.get(url, {:accept => "application/json"}))
+    rescue RestClient::BadRequest
+      return nil
+    end
+  end
+
+  def self.add_to_group(login, group)
+    url = ADD_USER_TO_GROUP_URL.gsub("__login__", login)
+    body = CROWD_REST_ADD_GROUP_BODY.gsub("__groupname__", group)
+
+    begin
+      RestClient.post(url, body, {:content_type => "application/xml", :accept => "application/json"})
+    rescue RestClient::BadRequest
+      return nil
+    end
+  end
+
+  def self.delete_from_group(login, group)
+    url = DELETE_USER_FROM_GROUP_URL.gsub("__login__", login).gsub("__groupname__", group)
+
+    begin
+      RestClient.delete(url, {:content_type => "application/xml", :accept => "application/json"})
+    rescue RestClient::BadRequest
+      return nil
     end
   end
 

@@ -129,15 +129,15 @@ class User < ActiveRecord::Base
       user = User.new(:login     =>    user_json["name"],
                       :email     =>    user_json["email"])
 
-      user.admin = user_attributes["admin"].to_i
       user.disabled = user_json["active"] ? nil : Time.now
+      user.admin = CrowdUsersEndpoint.admin?(user.login) ? true : nil
 
       user.save(false)
 
     else #user already exists in webistrano do; update existing
       user.email = user_json["email"]
-      user.admin = user_attributes["admin"].to_i
       user.disabled = user_json["active"] ? nil : Time.now
+      user.admin = CrowdUsersEndpoint.admin?(user.login) ? true : nil
 
       user.save(false)
     end
