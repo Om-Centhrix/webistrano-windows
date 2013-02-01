@@ -1,5 +1,5 @@
 <div id="projects_open_content" style="<%=h show_if_opened(status) %>">
-  <% if Project.count > 0 %>
+  <% if Project.active.count > 0 %>
     <% for project in Project.active.find(:all, :order => "name ASC") %>
       <a href="<%= project_path(project) %>" class="menu_link <%=h active_link_class(project) %>" title="<%=h project.name %>">
 		    <div class="menu_icons">
@@ -26,8 +26,12 @@
       </div>
     <% end %>
   <% else %>
-    <div class="menu_item">No project created yet</div>
-   <a href="<%= new_project_path %>" class="menu_link  menu_link_create">New project</a>
+    <div class="menu_item">No active projects</div>
+    <a href="<%= new_project_path %>" class="menu_link  menu_link_create">
+	    <div class="menu_link_title">
+          New project
+        </div>
+    </a>
   <% end %>
 </div>
 <div id="projects_closed_content" style="<%=h show_if_closed(status) %>">
